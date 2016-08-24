@@ -10,7 +10,7 @@
 #
 
 NUM_SERVERS = 20
-PORTS_PER_SERVER = 1
+PORTS_PER_SERVER = 2
 PORTS_PER_NETWORK = 2
 NETWORKS_PER_ROUTER = 2
 CONCURRENT_NETWORKS = 2
@@ -73,52 +73,59 @@ class Router:
             network.add_router_port()
 
 
-print "\nScale Test\n"
+def run_scale_test(num_servers, ports_per_server, ports_per_network, networks_per_router,
+                   concurrent_networks, concurrent_routers, floating_ip_per_num_ports):
 
-# Init Networks
-networks = []
-for network in range(0, CONCURRENT_NETWORKS):
-    networks.append(Network(PORTS_PER_NETWORK))
-    print "Creating Network " + str(networks[network].id)
+    print "\nScale Test\n"
 
-next_network_index = 0
+    # Init Networks
+    networks = []
+    for network in range(0, concurrent_networks):
+        networks.append(Network(ports_per_network))
+        print "Creating Network " + str(networks[network].id)
 
-print ""
+    next_network_index = 0
 
-# Init Routers
-routers = []
-for router in range(0, CONCURRENT_ROUTERS):
-    routers.append(Router(NETWORKS_PER_ROUTER))
-    print "Creating Router " + str(routers[router].id)
+    print ""
 
-next_router_index = 0
+    # Init Routers
+    routers = []
+    for router in range(0, concurrent_routers):
+        routers.append(Router(networks_per_router))
+        print "Creating Router " + str(routers[router].id)
 
-print ""
+    next_router_index = 0
 
-# Init External Network
-if FLOATING_IP_PER_NUM_PORTS > 0:
-    print "Creating External Network\n"
+    print ""
 
-next_port_id = 0
+    # Init External Network
+    if floating_ip_per_num_ports > 0:
+        print "Creating External Network\n"
 
-for server in range(0, NUM_SERVERS):
-    for port in range (0, PORTS_PER_SERVER):
-        print "Creating port " + str(next_port_id) + " on Server " + str(server)
+    next_port_id = 0
 
-        # Add port to network, if necessary
-        if CONCURRENT_NETWORKS > 0:
-            networks[next_network_index].add_port(next_port_id)
+    for server in range(0, num_servers):
+        for port in range (0, ports_per_server):
+            print "Creating port " + str(next_port_id) + " on Server " + str(server)
 
-            # Add network to router, if necessary
-            if CONCURRENT_ROUTERS > 0:
-                routers[next_router_index].add_port(networks[next_network_index])
-                next_router_index = next_router_index % CONCURRENT_ROUTERS;
+            # Add port to network, if necessary
+            if concurrent_networks > 0:
+                networks[next_network_index].add_port(next_port_id)
 
-                # Create floating IP for port if necessary.
-                if FLOATING_IP_PER_NUM_PORTS > 0 and next_port_id % FLOATING_IP_PER_NUM_PORTS == 0:
-                    print "Creating a Floating IP for Port " + str(next_port_id)
+                # Add network to router, if necessary
+                if concurrent_routers > 0:
+                    routers[next_router_index].add_port(networks[next_network_index])
+                    next_router_index = (next_router_index +1) % concurrent_routers;
 
-            next_network_index = next_network_index % CONCURRENT_NETWORKS;
+                    # Create floating IP for port if necessary.
+                    if floating_ip_per_num_ports > 0 and next_port_id % floating_ip_per_num_ports == 0:
+                        print "Creating a Floating IP for Port " + str(next_port_id)
 
-        next_port_id += 1
-        print ""
+                next_network_index = (next_network_index + 1) % concurrent_networks;
+
+            next_port_id += 1
+            print ""
+
+
+run_scale_test(NUM_SERVERS, PORTS_PER_SERVER, PORTS_PER_NETWORK, NETWORKS_PER_ROUTER,
+               CONCURRENT_NETWORKS, CONCURRENT_ROUTERS, FLOATING_IP_PER_NUM_PORTS)
