@@ -1,4 +1,13 @@
-# Scale Test Simulation
+# Scale Test
+#
+# This program is intended to describe a scaling test procedure for OpenDaylight NetVirt.
+# It could be used for other network virtualization implementations as well.
+#
+# As is, it's mostly a simulation, but the various print statements could be replaced by
+# actual calls to do the work.
+#
+# @author: Andre Fredette, Red Hat Inc.
+#
 
 NUM_SERVERS = 20
 PORTS_PER_SERVER = 1
@@ -64,7 +73,7 @@ class Router:
             network.add_router_port()
 
 
-print "\nScale Test Simulation\n"
+print "\nScale Test\n"
 
 # Init Networks
 networks = []
